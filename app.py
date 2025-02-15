@@ -23,25 +23,29 @@ def fetch_flights():
     ]
     df = pd.DataFrame(data["states"], columns=cols)
 
-    # Filtrer : avions en vol, coordos valides
+    # Filtrer : avions en vol, coordonnées valides
     df = df[df["on_ground"] == False].dropna(subset=["longitude", "latitude"])
     return df
 
 def main():
     st.title("Dashboard Survol en Direct")
 
-    # Bouton pour déclencher l'affichage des stats
-    if st.button("Afficher les stats des pays d'origine"):
+    if st.button("Afficher les stats et la carte"):
         df = fetch_flights()
-        st.write(f"Nombre d'avions en vol détectés : {len(df)}")
 
-        # Afficher un aperçu du DataFrame
+        st.write(f"Nombre d'avions en vol détectés : {len(df)}")
         st.write(df.head())
 
-        # Stats par pays d'origine
-        origin_counts = df["origin_country"].value_counts()
-        st.subheader("Répartition par pays d'origine")
+        # Stats par pays d'origine (ordre décroissant)
+        origin_counts = df["origin_country"].value_counts().sort_values(ascending=False)
+        st.subheader("Répartition par pays d'origine (ordre décroissant)")
         st.bar_chart(origin_counts)
+
+        # Afficher la carte des avions actuellement
+        st.subheader("Carte des avions actuellement dans la zone")
+        # Streamlit attend des colonnes 'lat' et 'lon'
+        map_df = df.rename(columns={"latitude": "lat", "longitude": "lon"})
+        st.map(map_df[["lat", "lon"]])
 
 if __name__ == "__main__":
     main()
